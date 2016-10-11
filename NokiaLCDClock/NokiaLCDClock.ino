@@ -1,5 +1,5 @@
 /*
-*took some from here
+*took some code from here
 *https://github.com/Makuna/Rtc/tree/master/examples/DS1307_Simple
 *http://pdacontrolenglish.blogspot.com.co  
 *http://pdacontrol.blogspot.com.co
@@ -142,14 +142,15 @@ void setup() {
   //tiny RTC
   Wire.begin(0, 2); // Inicia el puerto I2C
   RTC.begin(); // Inicia la comunicación con el RTC
-  
-  
+
+  /*
   // Check to see if the RTC is keeping time.  If it is, load the time from your computer.
   if (! RTC.isrunning()) {
     Serial.println("RTC is NOT running!");
     // This will reflect the time that your sketch was compiled
     RTC.adjust(DateTime(__DATE__, __TIME__));
   }
+  */
   Serial.begin(115200); // Establece la velocidad de datos del puerto serie
 
   //LCD SCREEN
