@@ -137,6 +137,7 @@ static const byte ASCII[][5] = {
   , {0x10, 0x08, 0x08, 0x10, 0x08} // 7e ~
   , {0x78, 0x46, 0x41, 0x46, 0x78} // 7f DEL
 };
+
 RTC_DS1307 RTC;
 void setup() {
   //tiny RTC
@@ -162,28 +163,57 @@ void setup() {
 void loop() {
   printHora();
 }
+//used for seconds count
+static const String secs[10] = {"*","**","***","****","*****","******","*******","********","*********","**********"};
 void printHora(){
   LCDClear();
-  DateTime now = RTC.now(); // Obtiene la fecha y hora del RTC
-  //Put hour into String
-  String tempFecha = String(now.day()) + "/" + String(now.month()) + "/" + String(now.year());
-  String tempHora = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+  
+  //GET TIME/DATE FROM REAL TIME CLOCK
+  DateTime now = RTC.now(); 
+  
+  //Put TIME/DATE into String
+  String tempFecha = int2String(now.day()) + "/" + int2String(now.month()) + "/" + String(now.year());
+  String tempHora = int2String(now.hour()) + ":" + int2String(now.minute())/* + ":" + int2String(now.second())*/;
 
-  //--------TRANSFORM STRING INTO CHAR* -----------------------------------------------------------
+  //--------TRANSFORM STRING INTO CHAR* FOR LCD PRINTING ------------------------------------------
   char tempF [tempFecha.length() + 1];
   char tempH [tempHora.length() + 1];
   tempHora.toCharArray(tempH, tempHora.length() + 1);
   tempFecha.toCharArray(tempF, tempFecha.length() + 1);
-  //--------------------------------------------------------
-  gotoXY(10, 2);
+  //-----------------------------------------------------------------------------------------------
+  
+  //PRINT TIME TO LCD 
+  gotoXY(25, 0);
   LCDString(tempH);
 
+  //PRINT SECONDS TO LCD
+  gotoXY(0,1);
+  String sec = String((now.second() / 10)) + " ";
+  String str = ""; 
+  str = sec;
+  str += secs[(now.second() % 10)];
+  char ch[str.length()+1];
+  str.toCharArray(ch, str.length() + 1);
+  LCDString(ch);
+
+  //PRINT DATE TO LCD
   gotoXY(5, 5);
   LCDString(tempF);
-  
-  delay(1000); // La información se actualiza cada 1 seg.  
+
+  delay(1000);  
 }
 
+/**
+ * Transform an int to string with zero padding
+*/
+String int2String(int num){
+  String str = ""; 
+  if(num < 10){
+    str+="0";
+  }
+  str+=String(num);
+  return str;  
+}
 
 //There are two memory banks in the LCD, data/RAM and commands. This
 //function sets the DC pin high or low depending, and then sends
