@@ -166,32 +166,47 @@ void setup() {
   LCDString("Loading ...");
   delay(1000);
 }
+
+//GLOBAL VARIABLES TIME/DATE/HUMIDITY
+//HUMIDITY
     float humRead = 0; //sensor data
     float humRead2 = 0; //data mapped to sensor ranges
     double humValue = 0.0; //percentage value
     String humStr = "Humidity";
+//TIME
     int nHour = 1;
     int nMin = 1;
     int nSec = 1;
+//DATE
     int nDay = 1;
     int nMonth = 1;
     int nYear = 1;
-    DateTime now = RTC.now();; 
+    DateTime now = RTC.now();
+    
 void loop(){
+  //TURN ON/OFF SOIL SENSOR
+  powerSoilSensor();
   //print time and humidity
-  if(nSec%4==0 || nSec%4==1){
-    digitalWrite(D2,HIGH);
-    }else{
-      digitalWrite(D2,LOW);
-    }
   printHora();
-  //read humidity sensor
+  //read soil sensor
   readHumidity();
   //desactivar descanso mientras se prueban otras cosas
   //sleep();
 }
 
+//CYCLE - 4 seconds
+//turn soil sencor during 2 seconds
+//of each cycle
+void powerSoilSensor(){
+  if(nSec%4==0 || nSec%4==1){
+      digitalWrite(D2,HIGH);
+    }else{
+      digitalWrite(D2,LOW);
+    }
+  }
 int retry = 0;
+//IF AN ERROR OCCURED LOGGIN DATA INTO THE ESP FILE SYSTEM
+//THIS WILL TRY TO RELOG THE DATA.
 void retryLog(){
   if(retry < 5){
         SPIFFS.begin();
@@ -201,6 +216,8 @@ void retryLog(){
         //no more tryes 
       }
  }
+
+//LOG DATA INTO ESP8266 MEMORY
 void logData(){
   //mount file system
   if( SPIFFS.begin() ){
@@ -228,8 +245,9 @@ void logData(){
   }
   
 }
-//producir una lectura cada 4 segundos
-//producir lectura en [n%4] == 1
+
+//READ SOIL SENSOR ONCE PER EACH 4 SECONDS
+//READ EACH [NOW.SECOND%4] == 1
 void readHumidity(){
   if(nSec%4==1){
     humRead = analogRead(A0);
@@ -244,6 +262,8 @@ void readHumidity(){
     logData();
   }
  }
+ 
+ //SEND ESP8266 to sleep 
  void sleep(){
   if((nMin % 3) == 0){
     //turn humidity sensor OFF
@@ -264,6 +284,7 @@ void readHumidity(){
     digitalWrite(D2,HIGH);
   }
 }
+
 //used for seconds count
 static const String secs[10] = {"*","**","***","****","*****","******","*******","********","*********","**********"};
 void printHora(){
