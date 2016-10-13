@@ -19,6 +19,7 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <RTClib.h>
+#include <FS.h>
 
 #define SLEEP_DELAY_IN_SECONDS 60
 
@@ -172,6 +173,9 @@ void setup() {
     int nHour = 1;
     int nMin = 1;
     int nSec = 1;
+    int nDay = 1;
+    int nMonth = 1;
+    int nYear = 1;
     DateTime now = RTC.now();; 
 void loop(){
   //print time and humidity
@@ -186,17 +190,58 @@ void loop(){
   //desactivar descanso mientras se prueban otras cosas
   //sleep();
 }
+
+int retry = 0;
+void retryLog(){
+  if(retry < 5){
+        SPIFFS.begin();
+        retry++;
+        logData();
+      }else{
+        //no more tryes 
+      }
+ }
+void logData(){
+  //mount file system
+  if( SPIFFS.begin() ){
+  String folder = "/" + String(nYear) + int2String(nMonth);
+  String file = "/" + String(nYear) + int2String(nMonth) + int2String(nDay) + ".csv";
+  String logN = String(nYear) + "-" + int2String(nMonth) + "-" + int2String(nDay) + "," //Date
+                  + int2String(nHour) + ":" + int2String(nMin) + ":" + int2String(nSec) + "," //Time
+                  + String(humRead) + ","//Sensor value
+                  + String(humValue); //Percentage value
+                  
+  //we want to append data to existing file or create a new one.
+  File f = SPIFFS.open(folder + file, "a");
+  if(f){
+    //appending new log          
+    f.println(logN);
+    retry = 0;    
+    }else{
+      //file creation failed
+      retryLog();
+    }
+    f.close();
+  }else{
+    //file system is not mounted
+    retryLog();
+  }
+  
+}
 //producir una lectura cada 4 segundos
+//producir lectura en [n%4] == 1
 void readHumidity(){
   if(nSec%4==1){
     humRead = analogRead(A0);
-    humRead2 = map(humRead,955,260,0,1024);
+    humRead2 = map(humRead,1000,100,0,1024);
     humValue = map(humRead2,0,1024,0,100);
     if(humValue < 0){
       humValue = 0.0;
     }else if(humValue > 100.0){
       humValue = 100.0;
     }
+    //log data after reading it
+    logData();
   }
  }
  void sleep(){
@@ -227,11 +272,14 @@ void printHora(){
   //GET TIME/DATE FROM REAL TIME CLOCK
   now = RTC.now(); 
   
-  //Put TIME/DATE into String
-  String tempFecha = int2String(now.day()) + "/" + int2String(now.month()) + "/" + String(now.year());
+  //Put TIME/DATE into String  
   nHour = now.hour();
   nMin = now.minute();
   nSec = now.second();
+  nDay = now.day();
+  nMonth = now.month();
+  nYear = now.year();
+  String tempFecha = int2String(now.day()) + "/" + int2String(now.month()) + "/" + String(now.year());
   String tempHora = int2String(nHour) + ":" + int2String(nMin);
 
   //--------TRANSFORM STRING INTO CHAR* FOR LCD PRINTING ------------------------------------------
@@ -254,9 +302,16 @@ void printHora(){
   char ch[str.length()+1];
   str.toCharArray(ch, str.length() + 1);
   LCDString(ch);
-
+  
+  //PRINT REAL VALUE
+  gotoXY(0,2);
+  String rVal = "real " + String(humRead);
+  char rv[rVal.length() + 1];
+  rVal.toCharArray(rv,rVal.length() + 1);
+  LCDString(rv);
+  
   //PRINT HUMIDITY
-  humStr = "Hum = " + String(humValue) + "%";
+  humStr = "Hum " + String(humValue) + "%";
   char humPrint[humStr.length() + 1];
   humStr.toCharArray(humPrint,humStr.length() + 1);
   gotoXY(0,3);
