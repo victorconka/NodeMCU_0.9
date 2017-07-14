@@ -223,10 +223,12 @@ void logData(){
   if( SPIFFS.begin() ){
   String folder = "/" + String(nYear) + int2String(nMonth);
   String file = "/" + String(nYear) + int2String(nMonth) + int2String(nDay) + ".csv";
-  String logN = String(nYear) + "-" + int2String(nMonth) + "-" + int2String(nDay) + "," //Date
-                  + int2String(nHour) + ":" + int2String(nMin) + ":" + int2String(nSec) + "," //Time
-                  + String(humRead) + ","//Sensor value
-                  + String(humValue); //Percentage value
+  String percent = String(humValue);
+  percent.replace("." , ",");
+  String logN = String(nYear) + "-" + int2String(nMonth) + "-" + int2String(nDay) + ";" //Date
+                  + int2String(nHour) + ":" + int2String(nMin) + ":" + int2String(nSec) + ";" //Time
+                  + String(humRead) + ";"//Sensor value
+                  + percent ; //Percentage value
                   
   //we want to append data to existing file or create a new one.
   File f = SPIFFS.open(folder + file, "a");

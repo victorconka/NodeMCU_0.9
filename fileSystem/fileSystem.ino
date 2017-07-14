@@ -4,7 +4,7 @@ File f;
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(250000);
   SPIFFS.begin();
 }
 void readFile(String donde){

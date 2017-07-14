@@ -152,7 +152,10 @@ void setup() {
     RTC.adjust(DateTime(__DATE__, __TIME__));
   }
   */
-  Serial.begin(115200); // Establece la velocidad de datos del puerto serie
+  RTC.adjust(DateTime(__DATE__, __TIME__));
+  
+  //Serial.begin(115200); // Establece la velocidad de datos del puerto serie
+  Serial.begin(256000);
 
   //LCD SCREEN
   LCDInit(); //Init the LCD
